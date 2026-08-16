@@ -1,0 +1,12 @@
+require("dotenv").config();
+const { App } = require("@slack/bolt");
+const axios = require("axios");
+const app = new App({ token: process.env.SLACK_BOT_TOKEN, appToken: process.env.SLACK_APP_TOKEN, socketMode: true });
+app.command("/mycoolbot-ping", async ({ ack, respond }) => { await ack(); await respond({ text: "Pong!" }); });
+app.command("/mycoolbot-catfact", async ({ ack, respond }) => { await ack(); try { const res = await axios.get("https://catfact.ninja"); await respond({ text: `Cat Fact: \n${res.data.fact}` }); } catch (e) { await respond({ text: "Failed to fetch a cat fact." }); } });
+app.command("/mycoolbot-joke", async ({ ack, respond }) => { await ack(); try { const res = await axios.get("https://appspot.com"); const data = Array.isArray(res.data) ? res.data[0] : res.data; const jokeText = data.setup ? `${data.setup}\n\n${data.punchline}` : `${data.joke}`; await respond({ text: `Joke:\n${jokeText}` }); } catch (e) { await respond({ text: "Failed to fetch a joke." }); } });
+app.command("/mycoolbot-echo", async ({ command, ack, respond }) => { await ack(); await respond({ text: `You said: ${command.text || "nothing!"}` }); });
+app.command("/mycoolbot-coinflip", async ({ ack, respond }) => { await ack(); const result = Math.random() < 0.5 ? "Heads 🪙" : "Tails 🪙"; await respond({ text: `The coin landed on: *${result}*` }); });
+app.command("/mycoolbot-dice", async ({ ack, respond }) => { await ack(); const roll = Math.floor(Math.random() * 6) + 1; await respond({ text: `🎲 You rolled a *${roll}*!` }); });
+app.command("/mycoolbot-help", async ({ ack, respond }) => { await ack(); await respond({ text: "Available Commands:\n/mycoolbot-ping - Check bot latency\n/mycoolbot-catfact - Get a cat fact\n/mycoolbot-joke - Get a random joke\n/mycoolbot-echo <text> - Repeat text back\n/mycoolbot-coinflip - Flip a coin\n/mycoolbot-dice - Roll a 6-sided die" }); });
+(async () => { console.log("Connecting..."); try { await app.start(); console.log("bot is running!"); } catch (e) { console.error(e); } })();
